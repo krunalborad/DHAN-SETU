@@ -8,6 +8,8 @@ import {
   sectorAllocation,
   totalInvested,
   totalPortfolioValue,
+  HealthBreakdown,
+  HoldingWithMetrics,
 } from "../lib/analytics";
 import { getDayChangePct, getHistory } from "../lib/priceEngine";
 import { formatINR, formatPct } from "../lib/format";
@@ -15,25 +17,56 @@ import { formatINR, formatPct } from "../lib/format";
 const UNUSUAL_MOVE_THRESHOLD = 3;
 const HISTORICAL_DIGEST_DAYS_AGO = 2;
 
-const TABS = [
+type TabId = "digest" | "sentiment" | "unusual";
+
+const TABS: { id: TabId; label: string }[] = [
   { id: "digest", label: "Weekly digest" },
   { id: "sentiment", label: "Sentiment" },
   { id: "unusual", label: "Explain unusual moves" },
 ];
 
-function formatDate(d) {
+type Sentiment = "bullish" | "bearish" | "neutral";
+
+type SectorEntry = ReturnType<typeof sectorAllocation>[number];
+
+interface PortfolioAggregate {
+  date: Date;
+  rows: HoldingWithMetrics[];
+  currentValue: number;
+  invested: number;
+  gainPct: number;
+  todayPct: number;
+  health: HealthBreakdown;
+  topSector: SectorEntry | undefined;
+  gainers: HoldingWithMetrics[];
+  laggards: HoldingWithMetrics[];
+  largest: HoldingWithMetrics | null;
+  largestPct: number;
+}
+
+interface UnusualRow {
+  holding: HoldingWithMetrics;
+  change: number;
+}
+
+interface SentimentRow {
+  holding: HoldingWithMetrics;
+  change: number;
+  label: Sentiment;
+  blurb: string;
+}
+
+function formatDate(d: Date): string {
   return new Intl.DateTimeFormat("en-GB", { day: "numeric", month: "short", year: "numeric" }).format(d);
 }
 
-// Rule-based sentiment: not a real model, just thresholds on today's move
-// and overall return. Swap this out if/when a real sentiment source exists.
-function sentimentFor(h, dayChange) {
+function sentimentFor(h: HoldingWithMetrics, dayChange: number): Sentiment {
   if (dayChange > 1.5 || h.gainPct > 15) return "bullish";
   if (dayChange < -1.5 || h.gainPct < -10) return "bearish";
   return "neutral";
 }
 
-function sentimentBlurb(h, dayChange, label) {
+function sentimentBlurb(h: HoldingWithMetrics, dayChange: number, label: Sentiment): string {
   const move = Math.abs(dayChange).toFixed(2);
   if (label === "bullish") {
     return `Strong bullish momentum today with a ${move}% advance, adding to the holding's ${h.gainPct.toFixed(1)}% overall return.`;
@@ -46,15 +79,13 @@ function sentimentBlurb(h, dayChange, label) {
   return `Price action was largely flat today (${dayChange >= 0 ? "+" : ""}${dayChange.toFixed(2)}%), in line with typical trading.`;
 }
 
-function badgeClass(label) {
+function badgeClass(label: Sentiment): string {
   if (label === "bullish") return "bg-gain/15 text-gain";
   if (label === "bearish") return "bg-loss/15 text-loss";
   return "bg-ink-border text-ink70";
 }
 
-// Builds the narrative paragraphs for a single digest entry from a
-// precomputed aggregate (works for "today" and reconstructed past days).
-function buildDigestParagraphs(agg) {
+function buildDigestParagraphs(agg: PortfolioAggregate): string[] {
   if (!agg || agg.rows.length === 0) {
     return ["Add holdings to generate your weekly digest."];
   }
@@ -92,9 +123,7 @@ function buildDigestParagraphs(agg) {
   return [p1, p2, p3].filter(Boolean);
 }
 
-// Reconstructs an aggregate snapshot from `daysAgo`, using each holding's
-// simulated price history rather than fabricated numbers.
-function computeHistoricalAggregate(enrichedNow, daysAgo) {
+function computeHistoricalAggregate(enrichedNow: HoldingWithMetrics[], daysAgo: number): PortfolioAggregate {
   const rows = enrichedNow.map((h) => {
     const hist = getHistory(h.symbol) || [];
     if (hist.length === 0) return { ...h, dayChangeAtDate: 0 };
@@ -133,7 +162,7 @@ function computeHistoricalAggregate(enrichedNow, daysAgo) {
 export default function AiInsights() {
   const { holdings } = usePortfolio();
   useLivePrices();
-  const [activeTab, setActiveTab] = useState("digest");
+  const [activeTab, setActiveTab] = useState<TabId>("digest");
 
   const enriched = useMemo(() => enrichHoldings(holdings), [holdings]);
   const currentValue = totalPortfolioValue(enriched);
@@ -158,7 +187,7 @@ export default function AiInsights() {
   const largest = enriched.length ? [...enriched].sort((a, b) => b.currentValue - a.currentValue)[0] : null;
   const largestPct = largest && currentValue ? (largest.currentValue / currentValue) * 100 : 0;
 
-  const todayAggregate = useMemo(
+  const todayAggregate: PortfolioAggregate = useMemo(
     () => ({
       date: new Date(),
       rows: enriched,
@@ -179,7 +208,7 @@ export default function AiInsights() {
     () => computeHistoricalAggregate(enriched, HISTORICAL_DIGEST_DAYS_AGO),
     [enriched]
   );
-  const digestEntries = [todayAggregate, pastAggregate];
+  const digestEntries: PortfolioAggregate[] = [todayAggregate, pastAggregate];
 
   const unusual = useMemo(() => {
     return enriched
@@ -188,11 +217,11 @@ export default function AiInsights() {
         if (Math.abs(change) < UNUSUAL_MOVE_THRESHOLD) return null;
         return { holding: h, change };
       })
-      .filter(Boolean)
+      .filter((item): item is UnusualRow => item !== null)
       .sort((a, b) => Math.abs(b.change) - Math.abs(a.change));
   }, [enriched]);
 
-  const sentimentRows = useMemo(
+  const sentimentRows: SentimentRow[] = useMemo(
     () =>
       enriched.map((h) => {
         const change = getDayChangePct(h.symbol);
@@ -202,7 +231,7 @@ export default function AiInsights() {
     [enriched]
   );
 
-  const SentimentCard = ({ row, compact }) => (
+  const SentimentCard = ({ row, compact }: { row: SentimentRow; compact?: boolean }) => (
     <div className={compact ? "" : "rounded-lg border border-ink-border bg-ink-surface p-4"}>
       <div className="flex items-center gap-2 mb-1">
         <span className="text-sm font-medium text-ink50">{row.holding.symbol}</span>
