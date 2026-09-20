@@ -13,12 +13,19 @@ import {
   sectorAllocation,
   totalInvested,
   totalPortfolioValue,
+  HoldingWithMetrics,
 } from "../lib/analytics";
 import { getDayChangePct } from "../lib/priceEngine";
 import { formatINR, formatPct } from "../lib/format";
 
 // Threshold (in %) for flagging a holding as "unusual" today.
 const UNUSUAL_MOVE_THRESHOLD = 3;
+
+interface UnusualItem {
+  holding: HoldingWithMetrics;
+  change: number;
+  reasons: string[];
+}
 
 export default function Dashboard() {
   const { holdings } = usePortfolio();
@@ -64,13 +71,13 @@ export default function Dashboard() {
     return enriched
       .map((h) => {
         const change = getDayChangePct(h.symbol);
-        const reasons = [];
+        const reasons: string[] = [];
         if (Math.abs(change) >= UNUSUAL_MOVE_THRESHOLD) {
           reasons.push(`${change >= 0 ? "Up" : "Down"} ${formatPct(Math.abs(change))} today`);
         }
         return reasons.length ? { holding: h, change, reasons } : null;
       })
-      .filter(Boolean)
+      .filter((item): item is UnusualItem => item !== null)
       .sort((a, b) => Math.abs(b.change) - Math.abs(a.change));
   }, [enriched]);
 
