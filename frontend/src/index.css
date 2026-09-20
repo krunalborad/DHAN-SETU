@@ -1,0 +1,187 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color-scheme: dark;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+}
+
+body {
+  background-color: #05070a;
+  color: #edeff2;
+  font-family: "Inter", system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+.tnum {
+  font-family: "IBM Plex Mono", ui-monospace, monospace;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.01em;
+}
+
+::selection {
+  background: #27d9a3;
+  color: #0a0e13;
+}
+
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: #2a303c;
+  border-radius: 4px;
+}
+
+:focus-visible {
+  outline: 2px solid #27d9a3;
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* ==========================================================================
+   AI-native visual layer — v3: bold, visible, "crazy" per request.
+   ========================================================================== */
+
+/* Dot-grid + strong aurora glow behind the whole app */
+.app-aurora-bg {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background-color: #05070a;
+  background-image: radial-gradient(rgba(255, 255, 255, 0.06) 1px, transparent 1px);
+  background-size: 28px 28px;
+  overflow: hidden;
+}
+.app-aurora-bg::before {
+  content: "";
+  position: absolute;
+  width: 70vw;
+  height: 70vw;
+  max-width: 1100px;
+  max-height: 1100px;
+  top: -25%;
+  left: -15%;
+  background: radial-gradient(circle, rgba(39, 217, 163, 0.35), transparent 65%);
+  filter: blur(90px);
+  animation: aurora-drift 14s ease-in-out infinite;
+}
+.app-aurora-bg::after {
+  content: "";
+  position: absolute;
+  width: 60vw;
+  height: 60vw;
+  max-width: 900px;
+  max-height: 900px;
+  bottom: -20%;
+  right: -10%;
+  background: radial-gradient(circle, rgba(139, 110, 230, 0.28), transparent 65%);
+  filter: blur(90px);
+  animation: aurora-drift 18s ease-in-out infinite reverse;
+}
+
+/* Glass card with a clearly visible animated gradient border */
+.glass-card {
+  position: relative;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.04), rgba(255, 255, 255, 0)), #10151d;
+  border: 1px solid transparent;
+  border-radius: 0.85rem;
+  box-shadow: 0 8px 32px -12px rgba(0, 0, 0, 0.6);
+  isolation: isolate;
+}
+.glass-card::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  padding: 1.5px;
+  background: linear-gradient(
+    120deg,
+    rgba(39, 217, 163, 0.9),
+    rgba(139, 110, 230, 0.7),
+    rgba(107, 232, 196, 0.9),
+    rgba(39, 217, 163, 0.9)
+  );
+  background-size: 300% 300%;
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  animation: shimmer 6s linear infinite;
+  opacity: 0.55;
+  z-index: -1;
+}
+.glass-card:hover::before {
+  opacity: 1;
+}
+
+/* Shimmer border for AI-generating states — more intense than the base card */
+.ai-shimmer-border {
+  position: relative;
+  border-radius: 0.85rem;
+  overflow: hidden;
+}
+.ai-shimmer-border::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  padding: 2px;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    #27d9a3,
+    #6be8c4,
+    #8b6ee6,
+    transparent
+  );
+  background-size: 200% 100%;
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  animation: shimmer 1.5s linear infinite;
+}
+
+/* Strong glow accents for gain/loss numbers */
+.glow-text-gain {
+  text-shadow: 0 0 10px rgba(39, 217, 163, 0.8), 0 0 30px rgba(39, 217, 163, 0.4);
+}
+.glow-text-loss {
+  text-shadow: 0 0 10px rgba(240, 89, 107, 0.8), 0 0 30px rgba(240, 89, 107, 0.4);
+}
+
+/* Animated gradient text — for page titles / hero numbers */
+.gradient-text {
+  background: linear-gradient(90deg, #27d9a3, #6be8c4, #8b6ee6, #27d9a3);
+  background-size: 300% auto;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  animation: shimmer 5s linear infinite;
+}
+
+.hover-lift {
+  transition: transform 0.25s ease, box-shadow 0.25s ease;
+}
+.hover-lift:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 16px 40px -12px rgba(39, 217, 163, 0.25);
+}
