@@ -1,4 +1,4 @@
-# Dalal Desk — Stock Portfolio Tracker
+# DHAN SETU — Stock Portfolio Tracker
 
 A professional stock portfolio tracker: top-nav dashboard, holdings with
 inline edit/delete, watchlist, sector + market-cap analytics with a
