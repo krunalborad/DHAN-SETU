@@ -177,3 +177,7 @@ stock-portfolio-tracker/
   simplifying assumptions: sentiment/signal is a simple rule (today's move
   + overall return, not real news), and dividend yields are static per
   stock in `universe.ts` rather than pulled from a live source.
+
+## Live Deploy Link
+
+## https://dhan-setu-alpha.vercel.app
