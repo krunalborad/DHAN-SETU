@@ -15,8 +15,6 @@ This project ships in two parts:
   alerts, dividends) ready to wire up for real multi-device persistence
   and login.
 
----
-
 ## Quick start (frontend only — recommended first run)
 
 ```bash
@@ -37,8 +35,6 @@ npm run build
 npm run preview   # serves the production build locally to sanity-check it
 ```
 
----
-
 ## Pages
 
 | Page | What it shows |
@@ -53,8 +49,6 @@ npm run preview   # serves the production build locally to sanity-check it
 | **Alerts** | Price alerts (above/below a threshold), checked client-side against the simulated feed |
 | **Community** | An anonymized leaderboard comparing your return % against demo peers by risk bucket |
 
----
-
 ## What's simulated vs. real
 
 | Feature | Current state | To make it real |
@@ -66,8 +60,6 @@ npm run preview   # serves the production build locally to sanity-check it
 | Community leaderboard | Fixed demo peers, computed locally | Needs a real backend endpoint aggregating opted-in users' return % — never raw holdings. |
 | Data persistence | Browser `localStorage` (per-device only) | Wire the frontend's `PortfolioContext` to call the included backend API instead of `localStorage` — the data shapes already match. |
 | Auth | None — "Sign out" just resets the demo data | The backend already has JWT register/login (`/api/auth/register`, `/api/auth/login`) ready to connect. |
-
----
 
 ## Backend setup (optional — for real persistence & auth)
 
@@ -118,8 +110,6 @@ The data shapes in `frontend/src/types.ts` already match the Mongoose
 schemas in `backend/src/models`, so this is a mechanical swap rather than a
 redesign.
 
----
-
 ## Tech stack
 
 **Frontend:** React 18, TypeScript, Vite, Tailwind CSS, React Router,
@@ -131,8 +121,6 @@ jsonwebtoken), node-cron (ready for scheduled alert checks).
 **Design:** Deep-ink dark theme with a green accent (`#27D9A3`) and
 tabular monospace figures for financial data, top navigation bar — see
 `frontend/tailwind.config.js` for the full token set.
-
----
 
 ## Project structure
 
@@ -158,8 +146,6 @@ stock-portfolio-tracker/
     │   └── server.js
     └── package.json
 ```
-
----
 
 ## Notes on accuracy
 
